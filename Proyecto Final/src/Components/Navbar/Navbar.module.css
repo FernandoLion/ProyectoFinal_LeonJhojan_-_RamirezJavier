@@ -1,0 +1,11 @@
+.container {
+  width: 100%;
+  padding: 1rem;
+  background-color: #222;
+}
+
+.logo {
+  color: white;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
