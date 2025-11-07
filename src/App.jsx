@@ -6,6 +6,7 @@ import Navbar from './Components/Navbar/Navbar'
 import HomePage from './Pages/HomePage/HomePaje'
 import NoticiaDetallePage from './Pages/NoticiaDetallePage/NoticiaDetallePage'
 import AdminDashboardPage from './Pages/AdminDashboardPage/AdminDashboardPage'
+import FormularioNoticiaPage from './Pages/FormularioNoticiaPage/FormularioNoticiaPage'
 function App() {
   return (
     <>
@@ -18,6 +19,8 @@ function App() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/noticia/:id" element={<NoticiaDetallePage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/crear-noticia" element={<FormularioNoticiaPage />} />
+          <Route path="/admin/editar-noticia/:id" element={<FormularioNoticiaPage />} />
         </Routes>
       </main>
     </>
