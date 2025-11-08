@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/authContext'; // ¡Usamos tu hook!
-import { auth } from '../../firebase/config'; // Para el logout
+import { useAuth } from '../../context/authContext';
+import { auth } from '../../firebase/config'; 
 import { signOut } from 'firebase/auth';
 
 const Navbar = () => {

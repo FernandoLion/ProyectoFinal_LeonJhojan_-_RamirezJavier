@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { auth } from '../../firebase/config'; 
 //importamos el login de nuesrea confi
 import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { useNavigate } from 'react-router-dom'
 
 const LoginPage = () => {
  //variables para el formulario
@@ -21,6 +22,7 @@ const LoginPage = () => {
       //por ahora manejamso todo desde consola y con alerts
       console.log("¡Inicio de sesión exitoso!", user.uid);
       alert("¡Bienvenido de vuelta!");
+      navigate("/admin");
       
       //aca luego va la logica de redireccion, admin o reportero
 
