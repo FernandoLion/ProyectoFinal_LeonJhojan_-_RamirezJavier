@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { auth } from '../../firebase/config'; 
 //importamos el login de nuesrea confi
 import { signInWithEmailAndPassword } from "firebase/auth"; 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
  //variables para el formulario
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); //no habia colocado esto y daba error xd
 
   //la funcion que maneja todo el login
   const handleLogin = async (e) => {
