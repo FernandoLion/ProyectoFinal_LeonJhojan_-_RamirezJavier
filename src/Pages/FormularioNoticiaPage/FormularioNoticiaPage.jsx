@@ -1,22 +1,53 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'; 
+import { useNavigate, useParams } from 'react-router-dom'; 
 import { db } from '../../firebase/config';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, getDoc, updateDoc } from 'firebase/firestore'; 
 import { useAuth } from '../../context/authContext';
 const CLOUDINARY_CLOUD_NAME = "dpdieag95"; 
 const CLOUDINARY_UPLOAD_PRESET = "cms-noticias";
 
-
 const FormularioNoticiaPage = () => {
+  //leemmos el id de la noticia, si no hay estamos en modo crear, no editar
+  const { id } = useParams();
   const [titulo, setTitulo] = useState('');
   const [subtitulo, setSubtitulo] = useState('');
   const [categoria, setCategoria] = useState('');
   const [contenido, setContenido] = useState('');
   const [imagen, setImagen] = useState(null); 
   const [loading, setLoading] = useState(false);
-
+  const [imagenUrlExistente, setImagenUrlExistente] = useState('');//si estamos en modo editar, usamos este para gguardar la imagen ya existente
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
+
+  
+  useEffect(() => {
+    if (id) {
+      // si hay id, este es el modo editar
+      setLoading(true);
+      const fetchNoticia = async () => {
+        try {
+          const docRef = doc(db, "noticias", id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            // rellenamos los campos
+            setTitulo(data.titulo);
+            setSubtitulo(data.subtitulo);
+            setCategoria(data.categoria);
+            setContenido(data.contenido);
+            setImagenUrlExistente(data.imagenURL); 
+          } else {
+            alert("Error: No se encontró la noticia para editar.");
+            navigate('/admin');
+          }
+        } catch (error) {
+          console.error("Error al cargar noticia para editar:", error);
+        }
+        setLoading(false);
+      };
+      fetchNoticia();
+    }
+  }, [id, navigate]); 
 
   const handleImagenChange = (e) => {
     if (e.target.files[0]) {
@@ -34,42 +65,51 @@ const FormularioNoticiaPage = () => {
     setLoading(true);
 
     try {
-      let imagenURL = "";
+      let imagenURL = imagenUrlExistente; 
+
+      //si se selecciono una imagen nueva, debemos subirla
       if (imagen) {
-        // FormData para enviar el archivo
         const formData = new FormData();
         formData.append('file', imagen);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-        // Hacemos el POST request a la API de Cloudinary
         const res = await fetch(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
+          { method: 'POST', body: formData }
         );
         const data = await res.json();
-        
-        //sacamos la url
         imagenURL = data.secure_url; 
       }
 
-      //guardar datos en firebase
-      await addDoc(collection(db, "noticias"), {
+      const datosNoticia = {
         titulo: titulo,
         subtitulo: subtitulo,
         categoria: categoria,
         contenido: contenido,
         imagenURL: imagenURL, 
-        autorId: currentUser.uid, 
-        autorNombre: userData.nombre,
-        estado: "Edición", 
-        fechaCreacion: Timestamp.now(),
         fechaActualizacion: Timestamp.now(),
-      });
+      };
 
-      alert("¡Noticia guardada! (Imagen en Cloudinary, Texto en Firebase)");
+      if (id) {
+        //modo edit
+        const docRef = doc(db, "noticias", id);
+        await updateDoc(docRef, {
+          ...datosNoticia,
+          // no se modifica autor, estado, ni fecha de cracion
+        });
+        alert("¡Noticia actualizada!");
+
+      } else {
+        //modo create
+        await addDoc(collection(db, "noticias"), {
+          ...datosNoticia,
+          autorId: currentUser.uid, 
+          autorNombre: userData.nombre,
+          estado: "Edición", 
+          fechaCreacion: Timestamp.now(),
+        });
+        alert("¡Noticia guardada! (Imagen en Cloudinary, Texto en Firebase)");
+      }
+      
       setLoading(false);
       navigate('/admin');
 
@@ -80,14 +120,21 @@ const FormularioNoticiaPage = () => {
     }
   };
 
+  //pal titulo dinamico xd
+  const modo = id ? "Editar" : "Crear";
+
+  if (loading && id) {
+     return <div>Cargando datos para editar...</div>;
+  }
+
   return (
     <div className="row justify-content-center">
       <div className="col-lg-8">
-        <h2 className="text-center mb-4 mt-4">Crear Noticia</h2>
+        {/* Título dinámico */}
+        <h2 className="text-center mb-4 mt-4">{modo} Noticia</h2>
         
         <div className="card p-4 shadow">
           <form onSubmit={handleSubmit}>
-            
             <div className="mb-3">
               <label htmlFor="titulo" className="form-label">Título</label>
               <input
@@ -139,6 +186,12 @@ const FormularioNoticiaPage = () => {
                 accept="image/png, image/jpeg"
                 onChange={handleImagenChange}
               />
+              {imagenUrlExistente && !imagen && (
+                <div className="mt-2">
+                  <p className="form-text">Imagen actual (si no subes una nueva, se conservará esta):</p>
+                  <img src={imagenUrlExistente} alt="Imagen actual" style={{ width: '100px', height: 'auto', borderRadius: '4px' }} />
+                </div>
+              )}
             </div>
 
             <div className="mb-3">
@@ -168,7 +221,7 @@ const FormularioNoticiaPage = () => {
                 className="btn btn-primary"
                 disabled={loading}
               >
-                {loading ? "Guardando..." : "Guardar Noticia"}
+                {loading ? "Guardando..." : `Guardar ${modo}`}
               </button>
             </div>
 

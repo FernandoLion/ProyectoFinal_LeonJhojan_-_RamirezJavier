@@ -40,8 +40,8 @@ const useGetNoticias = (rol, uid) => {
       setLoading(false);
     });
 
-    return () => unsubscribe(); 
-  }, [rol, uid]); 
+    return () => unsubscribe();
+  }, [rol, uid]);
 
   return { noticias, loading };
 };
@@ -82,7 +82,7 @@ const DashboardReportero = ({ uid }) => {
                 <td><span className="badge bg-info text-dark">{noticia.estado}</span></td>
                 <td>{formatFecha(noticia.fechaActualizacion)}</td>
                 <td>
-                  <button className="btn btn-secondary btn-sm me-2">Editar</button>
+                  <Link to={`/admin/editar-noticia/${noticia.id}`} className="btn btn-secondary btn-sm me-2">Editar</Link>
                 </td>
               </tr>
             ))}
@@ -135,7 +135,7 @@ const DashboardEditor = ({ uid }) => {
                   {/* gestioanr estados, sin logica aun*/}
                   <button className="btn btn-success btn-sm me-2">Publicar</button>
                   <button className="btn btn-warning btn-sm me-2">Desactivar</button>
-                  <button className="btn btn-secondary btn-sm">Editar</button>
+                  <Link to={`/admin/editar-noticia/${noticia.id}`} className="btn btn-secondary btn-sm">Editar</Link>
                 </td>
               </tr>
             ))}
@@ -147,7 +147,7 @@ const DashboardEditor = ({ uid }) => {
 };
 
 const AdminDashboardPage = () => {
-  const { userData, currentUser } = useAuth(); 
+  const { userData, currentUser } = useAuth();
 
   const renderDashboardPorRol = () => {
     if (!userData || !currentUser) {
