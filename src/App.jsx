@@ -9,8 +9,7 @@ import AdminDashboardPage from './Pages/AdminDashboardPage/AdminDashboardPage'
 import FormularioNoticiaPage from './Pages/FormularioNoticiaPage/FormularioNoticiaPage'
 import RutaProtegida from './Components/RutaProtegida/RutaProtegida'
 
-// --- 1. AQUÍ ESTÁ EL ARREGLO ---
-// Faltaba importar el Footer que creamos
+
 import Footer from './Components/Footer/Footer'
 
 function App() {
