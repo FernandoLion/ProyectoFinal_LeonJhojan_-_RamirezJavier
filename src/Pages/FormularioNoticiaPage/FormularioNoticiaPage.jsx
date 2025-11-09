@@ -201,7 +201,7 @@ const FormularioNoticiaPage = () => {
             </div>
 
             <div className="mb-3">
-              <label htmlFor="imagen" className="form-label">Imagen Principal (RF-06)</label>
+              <label htmlFor="imagen" className="form-label">Imagen Principal</label>
               <input
                 type="file"
                 className="form-control"

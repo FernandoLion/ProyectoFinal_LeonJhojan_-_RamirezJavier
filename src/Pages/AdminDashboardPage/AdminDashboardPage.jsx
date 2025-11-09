@@ -284,7 +284,7 @@ const DashboardEditor = ({ uid }) => {
           </li>
           <li className="nav-item" role="presentation">
             <button className="nav-link" id="secciones-tab" data-bs-toggle="tab" data-bs-target="#secciones" type="button" role="tab" aria-controls="secciones" aria-selected="false">
-              Gestión de Secciones (RF-08)
+              Gestión de Secciones 
             </button>
           </li>
         </ul>

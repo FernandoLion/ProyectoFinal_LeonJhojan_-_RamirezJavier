@@ -9,7 +9,7 @@ const RutaProtegida = ({ children }) => {
     return <div>Cargando...</div>; // O un spinner
   }
 
-  // Si NO hay usuario, lo redirigimos a /login (RF-02)
+  // Si NO hay usuario, lo redirigimos a /login 
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
