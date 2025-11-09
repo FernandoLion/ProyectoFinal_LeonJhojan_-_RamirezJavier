@@ -8,21 +8,27 @@ import NoticiaDetallePage from './Pages/NoticiaDetallePage/NoticiaDetallePage'
 import AdminDashboardPage from './Pages/AdminDashboardPage/AdminDashboardPage'
 import FormularioNoticiaPage from './Pages/FormularioNoticiaPage/FormularioNoticiaPage'
 import RutaProtegida from './Components/RutaProtegida/RutaProtegida'
-//importamos este archivo, que es el que nos va a servir de guardian
-//
+
+// --- 1. AQUÍ ESTÁ EL ARREGLO ---
+// Faltaba importar el Footer que creamos
+import Footer from './Components/Footer/Footer'
+
 function App() {
   return (
-    <>
+    
+    <div className="d-flex flex-column min-vh-100"> 
       <Navbar />
-      <main className="container mt-4">
+      
+    
+      <main className="container mt-4 flex-grow-1">
         <Routes>
-          {/* aca definimos algunas rutas que son publicas */}
+         
           <Route path="/" element={<HomePage />} />
           <Route path="/noticia/:id" element={<NoticiaDetallePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/registro" element={<RegisterPage />} />
 
-          {/* estas son las ritas privadas, las de administracion */}
+         
           <Route
             path="/admin"
             element={
@@ -49,7 +55,9 @@ function App() {
           />
         </Routes>
       </main>
-    </>
+      
+      <Footer /> 
+    </div>
   )
 }
 
