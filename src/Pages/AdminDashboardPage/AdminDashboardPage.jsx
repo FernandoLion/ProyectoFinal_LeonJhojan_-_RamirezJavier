@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/authContext';
 import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, Timestamp, addDoc } from 'firebase/firestore';
 
 const formatFecha = (timestamp) => {
   if (!timestamp) return 'Fecha no disponible';
@@ -12,48 +12,40 @@ const useGetNoticias = (rol, uid) => {
   const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!rol || !uid) return; 
+    if (!rol || !uid) return;
     const noticiasRef = collection(db, "noticias");
-    let q; 
+    let q;
     if (rol === "Reportero") {
       q = query(noticiasRef, where("autorId", "==", uid));
     } else {
       q = query(noticiasRef);
     }
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const listaNoticias = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const listaNoticias = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setNoticias(listaNoticias);
       setLoading(false);
     }, (error) => {
       console.error("Error al leer noticias: ", error);
       setLoading(false);
     });
-    return () => unsubscribe(); 
-  }, [rol, uid]); 
+    return () => unsubscribe();
+  }, [rol, uid]);
   return { noticias, loading };
 };
 
-
-// funcion para cambiar el estado
+// funcion para cambiar estado
 const handleUpdateEstado = async (id, nuevoEstado) => {
   console.log(`Cambiando estado de ${id} a ${nuevoEstado}`);
   const docRef = doc(db, "noticias", id);
   try {
-    await updateDoc(docRef, {
-      estado: nuevoEstado,
-      fechaActualizacion: Timestamp.now() 
-    });
+    await updateDoc(docRef, { estado: nuevoEstado, fechaActualizacion: Timestamp.now() });
     alert(`¡Noticia actualizada a "${nuevoEstado}"!`);
   } catch (error) {
     console.error("Error al actualizar estado: ", error);
     alert("Error al actualizar: " + error.message);
   }
 };
-
-// funcion para eleiminar una noticia
+//funcion para eliminar noticias
 const handleDeleteNoticia = async (id) => {
   if (window.confirm("¿Estás seguro de que quieres eliminar esta noticia? Esta acción no se puede deshacer.")) {
     console.log(`Eliminando noticia ${id}`);
@@ -68,11 +60,59 @@ const handleDeleteNoticia = async (id) => {
   }
 };
 
+
+const useGetSecciones = () => {
+  const [secciones, setSecciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, "secciones"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const listaSecciones = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSecciones(listaSecciones);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return { secciones, loading };
+};
+
+// crear seccion
+const handleCreateSeccion = async (e) => {
+  e.preventDefault();
+  const nombreSeccion = e.target.elements.nombreSeccion.value;
+  if (!nombreSeccion) return;
+  
+  try {
+    await addDoc(collection(db, "secciones"), {
+      nombre: nombreSeccion
+    });
+    alert(`¡Sección "${nombreSeccion}" creada!`);
+    e.target.reset(); 
+  } catch (error) {
+    console.error("Error al crear sección: ", error);
+  }
+};
+
+// eliminar seccion
+const handleDeleteSeccion = async (id) => {
+  if (window.confirm("¿Seguro quieres eliminar esta sección?")) {
+    try {
+      await deleteDoc(doc(db, "secciones", id));
+      alert("¡Sección eliminada!");
+    } catch (error) {
+      console.error("Error al eliminar sección: ", error);
+    }
+  }
+};
+
 const DashboardReportero = ({ uid }) => {
   const { noticias, loading } = useGetNoticias("Reportero", uid);
-
   if (loading) return <div>Cargando mis noticias...</div>;
-
   return (
     <div className="card shadow-sm">
       <div className="card-header d-flex justify-content-between align-items-center">
@@ -106,12 +146,9 @@ const DashboardReportero = ({ uid }) => {
                   {noticia.estado === "Desactivado" && <span className="badge bg-danger">Desactivado</span>}
                 </td>
                 <td>
-                  {/*reportero puede editar */}
                   <Link to={`/admin/editar-noticia/${noticia.id}`} className="btn btn-secondary btn-sm me-2">
                     Editar
                   </Link>
-                  
-                  {/* si etsa en edicion, se puede marcar como terminado*/}
                   {noticia.estado === "Edición" && (
                     <button 
                       className="btn btn-info btn-sm"
@@ -130,34 +167,29 @@ const DashboardReportero = ({ uid }) => {
   );
 };
 
+// interdaz editor
 const DashboardEditor = ({ uid }) => {
-  const { noticias, loading } = useGetNoticias("Editor", uid);
+  const { noticias, loading: loadingNoticias } = useGetNoticias("Editor", uid);
+  const { secciones, loading: loadingSecciones } = useGetSecciones(); // Hook nuevo
 
-  if (loading) return <div>Cargando todas las noticias...</div>;
-
-  return (
-    <div className="card shadow-sm">
-      <div className="card-header d-flex justify-content-between align-items-center">
-        <h5>Gestión de Noticias (Vista Editor)</h5>
-        <Link to="/admin/crear-noticia" className="btn btn-primary btn-sm">
-          Crear Nueva Noticia
-        </Link>
-      </div>
-      <div className="card-body">
-        <table className="table table-hover align-middle">
-          <thead>
+  const renderTablaNoticias = () => (
+    <div className="card-body">
+      <table className="table table-hover align-middle">
+        <thead>
             <tr>
               <th>Título</th>
               <th>Autor</th>
               <th>Estado</th>
               <th>Acciones (Editor)</th>
             </tr>
-          </thead>
-          <tbody>
-            {noticias.length === 0 && (
-              <tr><td colSpan="4">No hay noticias en el sistema.</td></tr>
-            )}
-            {noticias.map(noticia => (
+        </thead>
+        <tbody>
+          {loadingNoticias ? (
+            <tr><td colSpan="4">Cargando noticias...</td></tr>
+          ) : noticias.length === 0 ? (
+            <tr><td colSpan="4">No hay noticias en el sistema.</td></tr>
+          ) : (
+            noticias.map(noticia => (
               <tr key={noticia.id}>
                 <td>{noticia.titulo}</td>
                 <td>{noticia.autorNombre}</td>
@@ -168,44 +200,103 @@ const DashboardEditor = ({ uid }) => {
                   {noticia.estado === "Desactivado" && <span className="badge bg-danger">Desactivado</span>}
                 </td>
                 <td>
-                  {/* (RF-07) El Editor gestiona la publicación */}
-                  
-                  {/* solo se puede publicar si esta terminado, o desactivado*/}
                   {(noticia.estado === "Terminado" || noticia.estado === "Desactivado") && (
-                    <button 
-                      className="btn btn-success btn-sm me-2"
-                      onClick={() => handleUpdateEstado(noticia.id, "Publicado")}
-                    >
+                    <button className="btn btn-success btn-sm me-2" onClick={() => handleUpdateEstado(noticia.id, "Publicado")}>
                       Publicar
                     </button>
                   )}
-
-                  {/* solo se desactiva si esta publicado */}
                   {noticia.estado === "Publicado" && (
-                    <button 
-                      className="btn btn-warning btn-sm me-2"
-                      onClick={() => handleUpdateEstado(noticia.id, "Desactivado")}
-                    >
+                    <button className="btn btn-warning btn-sm me-2" onClick={() => handleUpdateEstado(noticia.id, "Desactivado")}>
                       Desactivar
                     </button>
                   )}
-                  
-                  {/* el editor tambie edita */}
                   <Link to={`/admin/editar-noticia/${noticia.id}`} className="btn btn-secondary btn-sm me-2">
                     Editar
                   </Link>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteNoticia(noticia.id)}>
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 
+  // vista de secciones, esto nuevo
+  const renderTablaSecciones = () => (
+    <div className="card-body">
+      <h5>Crear Nueva Sección</h5>
+      <form className="d-flex mb-4" onSubmit={handleCreateSeccion}>
+        <input 
+          type="text" 
+          name="nombreSeccion"
+          className="form-control me-2" 
+          placeholder="Nombre de la nueva sección" 
+          required 
+        />
+        <button type="submit" className="btn btn-primary">Crear</button>
+      </form>
+      
+      <h5>Secciones Existentes</h5>
+      <table className="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Nombre de Sección</th>
+            <th className="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loadingSecciones ? (
+            <tr><td>Cargando secciones...</td></tr>
+          ) : secciones.length === 0 ? (
+            <tr><td>No hay secciones creadas.</td></tr>
+          ) : (
+            secciones.map(seccion => (
+              <tr key={seccion.id}>
+                <td>{seccion.nombre}</td>
+                <td className="text-end">
                   <button 
                     className="btn btn-danger btn-sm"
-                    onClick={() => handleDeleteNoticia(noticia.id)}
+                    onClick={() => handleDeleteSeccion(seccion.id)}
                   >
                     Eliminar
                   </button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <div className="card shadow-sm">
+      <div className="card-header">
+        <ul className="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+          <li className="nav-item" role="presentation">
+            <button className="nav-link active" id="noticias-tab" data-bs-toggle="tab" data-bs-target="#noticias" type="button" role="tab" aria-controls="noticias" aria-selected="true">
+              Gestión de Noticias
+            </button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button className="nav-link" id="secciones-tab" data-bs-toggle="tab" data-bs-target="#secciones" type="button" role="tab" aria-controls="secciones" aria-selected="false">
+              Gestión de Secciones (RF-08)
+            </button>
+          </li>
+        </ul>
+      </div>
+      
+      <div className="tab-content" id="adminTabsContent">
+        <div className="tab-pane fade show active" id="noticias" role="tabpanel" aria-labelledby="noticias-tab">
+          {renderTablaNoticias()}
+        </div>
+        <div className="tab-pane fade" id="secciones" role="tabpanel" aria-labelledby="secciones-tab">
+          {renderTablaSecciones()}
+        </div>
       </div>
     </div>
   );

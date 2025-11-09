@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react'; 
 import { useNavigate, useParams } from 'react-router-dom'; 
 import { db } from '../../firebase/config';
-import { collection, addDoc, Timestamp, doc, getDoc, updateDoc } from 'firebase/firestore'; 
+import { collection, addDoc, Timestamp, doc, getDoc, updateDoc, query, onSnapshot } from 'firebase/firestore'; 
 import { useAuth } from '../../context/authContext';
 const CLOUDINARY_CLOUD_NAME = "dpdieag95"; 
 const CLOUDINARY_UPLOAD_PRESET = "cms-noticias";
+
+//pa leers secciones
+const useGetSecciones = () => {
+  const [secciones, setSecciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const q = query(collection(db, "secciones"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const listaSecciones = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSecciones(listaSecciones);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+  return { secciones, loading };
+};
 
 const FormularioNoticiaPage = () => {
   //leemmos el id de la noticia, si no hay estamos en modo crear, no editar
@@ -18,6 +37,7 @@ const FormularioNoticiaPage = () => {
   const [imagenUrlExistente, setImagenUrlExistente] = useState('');//si estamos en modo editar, usamos este para gguardar la imagen ya existente
   const { currentUser, userData } = useAuth();
   const navigate = useNavigate();
+  const { secciones, loading: loadingSecciones } = useGetSecciones();
 
   
   useEffect(() => {
@@ -161,7 +181,8 @@ const FormularioNoticiaPage = () => {
               />
             </div>
 
-            <div className="mb-3">
+          {/* ahora categorias es dinamico */}
+           <div className="mb-3">
               <label htmlFor="categoria" className="form-label">Categoría</label>
               <select 
                 className="form-select" 
@@ -170,10 +191,12 @@ const FormularioNoticiaPage = () => {
                 onChange={(e) => setCategoria(e.target.value)}
                 required>
                 <option value="">Selecciona una categoría...</option>
-                <option value="Tecnología">Tecnología</option>
-                <option value="Deportes">Deportes</option>
-                <option value="Política">Política</option>
-                <option value="Cultura">Cultura</option>
+                {secciones.map(seccion => (
+                  <option key={seccion.id} value={seccion.nombre}>
+                    {seccion.nombre}
+                  </option>
+                ))}
+
               </select>
             </div>
 
