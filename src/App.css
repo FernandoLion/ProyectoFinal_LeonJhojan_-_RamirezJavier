@@ -1,42 +1,91 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  /* text-align: center; */
+.btn {
+  border-radius: 50px !important; 
+  font-weight: 700 !important;
+  padding: 0.4rem 1.25rem !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.btn:hover {
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12); 
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.btn-primary {
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.25);
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.navbar-brand {
+  font-weight: 700 !important;
+  font-size: 1.3rem !important;
 }
 
-/* .card {
-  padding: 2em;
-} */
+.nav-link {
+  font-weight: 700;
+  color: #555 !important;
+  transition: color 0.2s ease-in-out;
+}
 
-.read-the-docs {
-  color: #888;
+.nav-link.active {
+  color: #0d6efd !important;
+  border-bottom: 3px solid #0d6efd;
+  padding-bottom: 2px;
+}
+
+.nav-link:hover {
+  color: #111 !important;
+}
+
+
+.card {
+  border: none !important; 
+  border-radius: 12px !important;
+  overflow: hidden; 
+  box-shadow: 0 4px 15px rgba(0,0,0, 0.06) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 10px 25px rgba(0,0,0, 0.1) !important;
+}
+
+.card-img-top {
+  transition: transform 0.4s ease;
+}
+
+.card:hover .card-img-top {
+  transform: scale(1.05);
+}
+
+.card-title {
+  font-weight: 700;
+  color: #222;
+}
+
+h2.border-bottom {
+  font-weight: 700;
+  color: #111;
+  border-bottom: 4px solid #0d6efd !important; 
+  padding-bottom: 8px;
+  display: inline-block; 
+  margin-bottom: 1.5rem !important;
+}
+
+.img-fluid.rounded {
+  border-radius: 12px !important;
+  box-shadow: 0 6px 20px rgba(0,0,0, 0.1);
+}
+
+.display-4.fw-bold {
+  color: #111;
+}
+
+div[dangerouslySetInnerHTML] {
+  font-size: 1.15rem !important;
+  line-height: 1.75;
+  color: #333;
 }
